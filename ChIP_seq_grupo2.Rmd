@@ -1,0 +1,349 @@
+---
+title: "Análisis de datos de ChIP-Seq para identificar sitios de unión de
+LEC1 en semillas en desarrollo"
+author: "clagrabel"
+date: "2024-02-10"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Análisis de datos de ChIP-Seq para identificar sitios de unión de LEC1 en semillas en desarrollo
+
+## Introducción
+
+### Antecedentes
+LEAFY COTILEDON1 (LEC1) es una subunidad del factor de transcripción NF-Y, de tipo CBF (CCAAT Binding Factor). Diversos estudios en Arabidopsis thaliana demuestran que LEC1 juega un papel importante en el desarrollo de la semilla, en procesos como la embriogénesis, la maduración de la semilla, la elongación del hipocótilo y la síntesis de fitohormonas.
+Aunque de manera general se conoce en qué procesos biológicos está implicado LEC1, los complejos mecanismos moleculares correspondientes no están descritos en detalle. Al formar parte de un factor de transcripción, identificar sus dianas podría ayudar a una mejor comprensión de su función.
+
+
+### Objetivo
+En este estudio, el objetivo es identificar los sitios de unión de LEC1 y determinar qué genes son sus dianas.
+
+
+## Materiales y Métodos
+
+### Diseño Experimental
+
+El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha expresado LEC1 con un “tag” bajo el control del promotor nativo. En la inmunoprecipitación, se usa un anticuerpo que reconoce este “tag”. Encontramos un total de cuatro muestras, existiendo dos réplicas para dos condiciones:
+
+* LEC1_ChIP (inmunoprecipitación de la cromatina)
+  + rep1
+  + rep2
+* Input (mismo protocolo pero sin usar anticuerpo)
+  + rep1
+  + rep2
+
+
+## Flujo de trabajo
+
+![Flujo de trabajo](ChIP_seq_workflow.jpg)
+
+
+En primer lugar, preparamos el espacio de trabajo:
+
+ChIPSeq/
+├── annotation/
+├── genome/
+├── samples/
+│   ├── replica_1/
+│   │   ├── chip/
+│   │   └── input/
+│   └── replica_2/
+│       ├── chip/
+│       └── input/
+├── results/
+└── scripts/
+
+Los ficheros genome.fa, annotation.gtf (que contienen el genoma de Arabidopsis thaliana en formato fasta y su correspondiente anotación, respectivamente) y las muestras fueron descargados manualmente y subidos a través de MobaXterm.
+A continuación se muestran los scripts de bash usados para el procesamiento de datos de ChIP.
+
+La construcción del índice para el genoma se realizó mediante el siguiente código:
+
+```{bash}
+bowtie2-build genome.fa index
+```
+
+
+Se utilizó el script sample_proc.sh para realizar el procesado de las muestras. Para ello, iteramos sobre los archivos fq.gz de cada carpeta de réplica. Este script incluye los pasos de:
+* Control de calidad con fastQC
+* Mapeo contra el índice del genoma de referencia con bowtie2
+* Paso de .sam a .bam con samtools y eliminación de los .sam
+
+_Script sample_proc_
+
+```{bash}
+echo "Script for ChIPseq Sample Processing"
+
+#===================#
+# Defining variables
+#===================#
+
+WD=$1		# Working directory
+		  	# In our case: /home/omicas/grupo2
+EXP=$2	# Name of the experiment folder
+			  # In our case: ChIPSeq
+i=$3		# Number of the replicate to be processed
+        # In our case, replicate 1 and replicate 2
+        # We will have to execute the script twice, once per replicate
+
+#===================#
+# Quality Control
+#===================#
+
+# Iterate over the replicates 1 or 2 for both chip and input files in each the 
+# replicate directory
+
+cd $WD/$EXP/samples/replica_$i
+
+# Access the chip folder
+
+cd chip
+
+for file in *.fq.gz
+do
+fastqc sample_chip_$i.fq.gz
+bowtie2 -x ../../../genome/index -U sample_chip_$i.fq.gz -S chip_$i.sam
+done
+
+# Access the input folder
+
+cd ../input
+
+for file in *.fq.gz
+do
+fastqc sample_input_$i.fq.gz
+bowtie2 -x ../../../genome/index -U sample_input_$i.fq.gz -S input_$i.sam
+done
+
+echo "Quality control for sample $i done!"
+
+#===================#
+# Samtools
+#===================#
+
+# Converting .sam into .bam and indexing .bam
+
+samtools sort -o input_$i.bam input_$i.sam
+rm input_$i.sam
+samtools index input_$i.bam
+cd ../chip
+samtools sort -o chip_$i.bam chip_$i.sam
+rm chip_$i.sam
+samtools index chip_$i.bam
+```
+
+
+La determinación de picos se llevó a cabo mediante el siguiente código:
+
+```{bash}
+macs2 callpeak \
+-t ../samples/replica_1/chip_1.bam ../samples/replica_2/chip_2.bam \
+-c ../samples/replica_1/input_1.bam ../samples/replica_2/input_2.bam \
+-f BAM --outdir . -n lec1 &>macs_output
+
+```
+
+
+En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input) El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
+
+Finalmente, se obtiene el guión para el enriquecimiento de motivos de DNA:
+
+```{bash}
+findMotifsGenome.pl lec1_summits.bed tair10 dnaMotifs -size 100 -len 8
+```
+
+Este comando recibe como entrada uno de los ficheros .bed generado anteriormente, que contiene las posiciones donde se encuentran las “cimas” de los picos. Usamos tair10 como genoma de referencia (tair10 se refiere a la versión 10 del genoma de A. thaliana). Especificamos el tamaño de la región usada para buscar motivos, así como la longitud de los mismos. Los resultados se guardarán en el directorio dnaMotifs.
+
+En cuanto al tratamiento de datos con RStudio, se usaron los siguientes paquetes:
+
+```{r}
+library(ChIPseeker)
+library(TxDb.Athaliana.BioMart.plantsmart28)
+library(clusterProfiler)
+library(org.At.tair.db)
+library(ggupset)
+```
+
+
+## Resultados
+
+### Análisis de la distribución global del Cistroma
+
+
+
+---------------
+
+A continuación, en R vamos a analizar la distribución del cistroma, usando para ello la base de datos de nuestro organismo.
+
+```{r}
+txdb <- TxDb.Athaliana.BioMart.plantsmart28
+```
+
+
+Leemos el fichero de picos y definimos qué vamos a consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS) Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
+
+```{r}
+lec1.peaks <- readPeakFile(peakfile = "lec1_peaks.narrowPeak", header=FALSE)
+promoter <- getPromoters(TxDb=txdb,
+upstream=1000,
+downstream=1000)
+
+lec1.peakAnno <- annotatePeak(peak = lec1.peaks, tssRegion=c(-1000, 1000),
+TxDb=txdb)
+```
+
+
+
+```{r}
+plotAnnoPie(lec1.peakAnno)
+plotAnnoBar(lec1.peakAnno)
+```
+
+En estos dos plot se observa que aproximadamente el 75% de sitios de unión de este factor de transcripción son promotores. Y el 15% es DNA intergénico. Son la misma representación, uno en pie chart y el otro en barras.
+
+
+
+```{r}
+plotDistToTSS(lec1.peakAnno,
+              title="Distribution of genomic loci relative to TSS",
+              ylab = "Genomic Loci (%) (5' -> 3')")
+```
+
+El plot anterior nos indica que aproximadamente el 42% de los picos se encuentran aguas arriba entre 0 y 1 kb. La información que nos da este plot nos indica si debemos ser más o menos restrictivos. En nuestro
+caso el umbral lo hemos puesto en 1 kb aguas arriba o aguas abajo, con ello nos estamos quedando con casi
+el 70 % de los picos, que es aceptable.
+
+```{r}
+upsetplot(lec1.peakAnno)
+```
+
+Este gráfico rinde un histograma que muestra la cantidad de picos de ChIP-seq que se encuentran en diferentes categorías genómicas: Promotor, genic, Exon, fiveUTR (5' UTR), Intergenic, Intron, distal_intergenic, threeUTR (3' UTR). Las líneas representan intersecciones entre las categorías, por tanto la cantidad de picos indicados estarían presentes en las categorías que forman el conjunto.
+Siguiendo esto, aproximadamente 2500 picos se encuentran tanto en promotores, como en genes, exones y la región 5' UTR. 
+También podemos interpretar por la parte inferior, por ejemplo la mayoría de los picos se encuentran o bien en promotores o bien en genes y exones, ya que son las categorías que más puntos tienen.
+
+
+```{r}
+plotPeakProf2(peak = lec1.peaks, upstream = rel(0.2), downstream = rel(0.2),
+              conf = 0.95, by = "gene", type = "body", nbin = 800,
+              TxDb = txdb, weightCol = "V5",ignore_strand = F)
+```
+
+En esta gráfica se muestra la frecuencia de picos relacionada con su distribución en el genoma. Hay una
+mayor frecuencia de picos cuanto más cerca de la región TSS, también se aprecia una frecuencia mayor que
+en el resto del gen cerca del TTS (Transcription Termination Site)
+
+
+
+Generamos un archivo con los genes diana del factor de transcripción LEC1 para realizar un enriquecimiento funcional del reguloma.
+
+```{r}
+lec1.annotation <- as.data.frame(lec1.peakAnno)
+target.genes <- lec1.annotation$geneId[lec1.annotation$annotation == "Promoter"]
+write(x = target.genes,file = "lec1_target_genes.txt")
+```
+
+
+### Análisis del Reguloma del correspondiente factor de transcripción o marca epigenética.
+
+
+```{r}
+length(target.genes)
+```
+Hay un total de 8410 genes identificados como genes diana del factor de transcripción lec1.
+
+Enlazamos a un archivo de reguloma:
+
+[Enlace a otro fichero](activated_genes_WT_with_no_Fe_1.txt)  
+
+
+### Enriquecimiento de Motivos de DNA en los sitios de Unión
+
+Imágenes de enriquecimiento de HOMER
+
+![Enriquecimiento HOMER]()
+
+```{r}
+lec1.enrich.go <- enrichGO(gene = target.genes,
+                           OrgDb         = org.At.tair.db,
+                           ont           = "BP",
+                           pAdjustMethod = "BH",
+                           pvalueCutoff  = 0.05,
+                           readable      = FALSE,
+                           keyType = "TAIR")
+
+```
+
+
+```{r}
+barplot(lec1.enrich.go,showCategory = 9)
+dotplot(lec1.enrich.go,showCategory = 9)
+```
+
+
+Se puede apreciar que el resultado del ensayo de ChIP-Seq está enriquecido en términos de ontología génica relacionados con la respuesta de la planta a estímulos abióticos como la irradiación e intensidad de luz. Los términos de ontología génicos que acumulan un mayor número de genes diana son los de respuesta a la intensidad luminosa y la luz roja.
+
+```{r}
+cnetplot(lec1.enrich.go,showCategory = 9)
+```
+
+También es posible representar las relaciones de los términos de ontología entre sí en una red biológica.
+
+```{r}
+lec1.enrich.kegg <- enrichKEGG(gene  = target.genes,
+                               organism = "ath",
+                               pAdjustMethod = "BH",
+                               pvalueCutoff  = 0.05)
+df.lec1.enrich.kegg <- as.data.frame(lec1.enrich.kegg)
+head(df.lec1.enrich.kegg)
+```
+
+
+### Enriquecimiento de Motivos de DNA en los sitios de Unión
+
+Este apartado solo es aplicable si estudias un factor de transcripción. 
+
+Describir y discutir los motivos de DNA conocidos y no conocidos identificados 
+por Homer.
+
+Incluir tablas con los motivos de DNA conocidos y no conocidos identificados.
+
+
+### Comparación de la unión u ocupancia entre distintas condiciones.
+
+Este apartado solos era aplicable si se proporcionan datos de distintas condiciones.
+Se realizará una comparación entre la unión u ocupancia entre las distintas condiciones.
+Generando los gráficos y tablas oportunas. 
+
+Las tablas en Rmarkdown se escriben así:
+
+Término de GO | Descripción | Genes Representativos
+------------ | -------------| -------------
+Table Cell   | Cell 2       | la
+Cell 3       | Cell 4       | la
+
+## Conclusiones
+
+Relacionar todos los resultados anteriores para formular conclusiones del análisis realizado.
+
+Relacionar los resultados obtenidos con los descritos en el artículo seleccionado.
+
+Propón algún experimento que creas oportuno realizar en el laboratorio para validar los resultados obtenidos. 
+
+Puntuación: 2
+
+
+## Referencias
+
+En orden alfabético según el apellido del primer autor. 
+
+autores (fecha) título del artículo, título de la revista en cursiva, volumen(número), páginas.
+
+Como se refiere en el texto artículos con un único autor (Apellido del autor, año)
+Como se refiere en el texto artículos con dos autores (Apellido primer autor & Apellido segundo autor, año)
+Como se refiere en el texto artículos con más de dos autores (Apellido primer autor et al, año)
+
+Puntuación: 0.5
