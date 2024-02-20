@@ -184,7 +184,7 @@ txdb <- TxDb.Athaliana.BioMart.plantsmart28
 ```
 
 
-Leemos el fichero de picos y definimos qué vamos a consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS) Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
+Leemos el fichero de picos y definimos qué consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS) Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
 
 ```{r}
 lec1.peaks <- readPeakFile(peakfile = "lec1_peaks.narrowPeak", header=FALSE)
