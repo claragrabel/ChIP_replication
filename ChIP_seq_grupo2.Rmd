@@ -16,12 +16,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Introducción
 
 ### Antecedentes
-LEAFY COTILEDON1 (LEC1) es una subunidad del factor de transcripción NF-Y, de tipo CBF (CCAAT Binding Factor). Diversos estudios en Arabidopsis thaliana demuestran que LEC1 juega un papel importante en el desarrollo de la semilla, en procesos como la embriogénesis, la maduración de la semilla, la elongación del hipocótilo y la síntesis de fitohormonas.
+LEAFY COTILEDON1 (LEC1) es una subunidad del factor de transcripción NF-Y, de tipo CBF (CCAAT Binding Factor). Diversos estudios en *Arabidopsis thaliana* demuestran que LEC1 juega un papel importante en el desarrollo de la semilla, en procesos como la embriogénesis, la maduración de la semilla, la elongación del hipocótilo y la síntesis de fitohormonas.
 Aunque de manera general se conoce en qué procesos biológicos está implicado LEC1, los complejos mecanismos moleculares correspondientes no están descritos en detalle. Al formar parte de un factor de transcripción, identificar sus dianas podría ayudar a una mejor comprensión de su función.
 
 
-### Objetivo
-En este estudio, el objetivo es identificar los sitios de unión de LEC1 y determinar qué genes son sus dianas.
+### Objetivos
+- Identificar los sitios de unión de LEC1 en el genoma
+- Determinar los genes diana de LEC1
+- Comparar los resultados obtenidos con el estudio del artículo de referencia
 
 
 ## Materiales y Métodos
@@ -37,6 +39,7 @@ El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha e
   + rep1
   + rep2
 
+Las muestras han sido secuenciadas mediante Illumina HiSeq 2500.
 
 ## Flujo de trabajo
 
