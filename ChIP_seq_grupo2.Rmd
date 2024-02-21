@@ -309,15 +309,15 @@ head(df.lec1.enrich.kegg)
 
 Este apartado solo es aplicable si estudias un factor de transcripción. 
 
-Describir y discutir los motivos de DNA conocidos y no conocidos identificados 
+------- Describir y discutir los motivos de DNA conocidos y no conocidos identificados 
 por Homer.
 
-Incluir tablas con los motivos de DNA conocidos y no conocidos identificados.
+------- Incluir tablas con los motivos de DNA conocidos y no conocidos identificados.
 
 
 ### Comparación de la unión u ocupancia entre distintas condiciones.
 
-Este apartado solos era aplicable si se proporcionan datos de distintas condiciones.
+Este apartado solo sera aplicable si se proporcionan datos de distintas condiciones.
 Se realizará una comparación entre la unión u ocupancia entre las distintas condiciones.
 Generando los gráficos y tablas oportunas. 
 
