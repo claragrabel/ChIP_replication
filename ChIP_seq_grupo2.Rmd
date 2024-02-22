@@ -30,7 +30,9 @@ Aunque de manera general se conoce en qué procesos biológicos está implicado 
 
 ### Diseño Experimental
 
-El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha expresado LEC1 con un “tag” bajo el control del promotor nativo. En la inmunoprecipitación, se usa un anticuerpo que reconoce este “tag”. Encontramos un total de cuatro muestras, existiendo dos réplicas para dos condiciones:
+Para este estudio, se expresa el factor de transcripción (FT) LEC1 con un tag bajo el control del promotor nativo. A continuación, se realiza una inmunoprecipitación con un anticuerpo específico para este tag. Se procesan un total de cuatro muestras, dos réplicas en las que se realiza la inmunoprecipitación y dos réplicas en las que se omite el tratamiento con el anticuerpo y que se emplean como input del estudio.
+
+El esquema de las muestras obtenidas se muestra a continuación:
 
 * LEC1_ChIP (inmunoprecipitación de la cromatina)
   + rep1
@@ -39,45 +41,22 @@ El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha e
   + rep1
   + rep2
 
-Las muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500).
+Estas muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500), para obtener el conjunto de datos de nuestro estudio; cuatro ficheros en formato .fq.gz que se encuentran disponibles en GEO con el número de acceso GSE109977.
 
 ## Flujo de trabajo
 
 ![Flujo de trabajo](ChIP_seq_workflow.jpg)
 
-(Omitiría la preparación del espacio de trabajo creo)
-En primer lugar, preparamos el espacio de trabajo:
+Partiendo de cuatro muestras, dos réplicas de inmunoprecipitación y dos réplicas del input, se ejecuta un script que realiza el control de calidad, el mapeo contra el genoma de referencia y la obtención de los archivos bam para cada una de las muestras de forma paralela. A continuación se indica el código empleado para ello:
 
-ChIPSeq/
-├── annotation/
-├── genome/
-├── samples/
-│   ├── replica_1/
-│   │   ├── chip/
-│   │   └── input/
-│   └── replica_2/
-│       ├── chip/
-│       └── input/
-├── results/
-└── scripts/
-
-Los ficheros genome.fa, annotation.gtf (que contienen el genoma de Arabidopsis thaliana en formato fasta y su correspondiente anotación, respectivamente) y las muestras fueron descargados manualmente y subidos a través de MobaXterm.
-(Scripts de procesamiento si que lo dejaría: análisis de calidad y mapeado)
-A continuación se muestran los scripts de bash usados para el procesamiento de datos de ChIP.
-
-La construcción del índice para el genoma se realizó mediante el siguiente código:
+La construcción del índice para el genoma:
 
 ```{bash}
 bowtie2-build genome.fa index
 ```
 
 
-Se utilizó el script sample_proc.sh para realizar el procesado de las muestras. Para ello, iteramos sobre los archivos fq.gz de cada carpeta de réplica. Este script incluye los pasos de:
-* Control de calidad con fastQC
-* Mapeo contra el índice del genoma de referencia con bowtie2
-* Paso de .sam a .bam con samtools y eliminación de los .sam
-
-_Script sample_proc_
+Script sample_proc.sh para realizar el procesado de las muestras:
 
 ```{bash}
 echo "Script for ChIPseq Sample Processing"
@@ -140,6 +119,7 @@ rm chip_$i.sam
 samtools index chip_$i.bam
 ```
 
+Tras el procesamiento de las muestras se determinan los picos, que indican los lugares de unión del FT al genoma:
 (A continuación, determinación de picos. No creo que haga falta la visualización en IGV, no?)
 La determinación de picos se llevó a cabo mediante el siguiente código:
 
