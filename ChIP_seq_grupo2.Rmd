@@ -16,12 +16,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Introducción
 
 ### Antecedentes
-LEAFY COTILEDON1 (LEC1) es una subunidad del factor de transcripción NF-Y, de tipo CBF (CCAAT Binding Factor). Diversos estudios en Arabidopsis thaliana demuestran que LEC1 juega un papel importante en el desarrollo de la semilla, en procesos como la embriogénesis, la maduración de la semilla, la elongación del hipocótilo y la síntesis de fitohormonas.
+LEAFY COTILEDON1 (LEC1) es una subunidad del factor de transcripción NF-Y, de tipo CBF (CCAAT Binding Factor). Diversos estudios en *Arabidopsis thaliana* demuestran que LEC1 juega un papel importante en el desarrollo de la semilla, en procesos como la embriogénesis, la maduración de la semilla, la elongación del hipocótilo y la síntesis de fitohormonas.
 Aunque de manera general se conoce en qué procesos biológicos está implicado LEC1, los complejos mecanismos moleculares correspondientes no están descritos en detalle. Al formar parte de un factor de transcripción, identificar sus dianas podría ayudar a una mejor comprensión de su función.
 
 
-### Objetivo
-En este estudio, el objetivo es identificar los sitios de unión de LEC1 y determinar qué genes son sus dianas.
+### Objetivos
+- Identificar los sitios de unión de LEC1 en el genoma
+- Determinar los genes diana de LEC1
+- Comparar los resultados obtenidos con el estudio del artículo de referencia
 
 
 ## Materiales y Métodos
@@ -37,12 +39,13 @@ El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha e
   + rep1
   + rep2
 
+Las muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500).
 
 ## Flujo de trabajo
 
 ![Flujo de trabajo](ChIP_seq_workflow.jpg)
 
-
+(Omitiría la preparación del espacio de trabajo creo)
 En primer lugar, preparamos el espacio de trabajo:
 
 ChIPSeq/
@@ -59,6 +62,7 @@ ChIPSeq/
 └── scripts/
 
 Los ficheros genome.fa, annotation.gtf (que contienen el genoma de Arabidopsis thaliana en formato fasta y su correspondiente anotación, respectivamente) y las muestras fueron descargados manualmente y subidos a través de MobaXterm.
+(Scripts de procesamiento si que lo dejaría: análisis de calidad y mapeado)
 A continuación se muestran los scripts de bash usados para el procesamiento de datos de ChIP.
 
 La construcción del índice para el genoma se realizó mediante el siguiente código:
@@ -136,7 +140,7 @@ rm chip_$i.sam
 samtools index chip_$i.bam
 ```
 
-
+(A continuación, determinación de picos. No creo que haga falta la visualización en IGV, no?)
 La determinación de picos se llevó a cabo mediante el siguiente código:
 
 ```{bash}
@@ -150,6 +154,7 @@ macs2 callpeak \
 
 En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input) El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
 
+(Anotación, homer)
 Finalmente, se obtiene el guión para el enriquecimiento de motivos de DNA:
 
 ```{bash}
@@ -169,7 +174,7 @@ library(ggupset)
 ```
 
 
-## Resultados
+## Resultados (Siguen siendo materiales y métodos)
 
 ### Análisis de la distribución global del Cistroma
 
@@ -203,7 +208,7 @@ plotAnnoPie(lec1.peakAnno)
 plotAnnoBar(lec1.peakAnno)
 ```
 
-En estos dos plot se observa que aproximadamente el 75% de sitios de unión de este factor de transcripción son promotores. Y el 15% es DNA intergénico. Son la misma representación, uno en pie chart y el otro en barras.
+En estos dos plot se observa que más del 75% de sitios de unión de este factor de transcripción son promotores (76.7%). Y el 15% es DNA intergénico. Son la misma representación, uno en pie chart y el otro en barras.
 
 
 
@@ -301,29 +306,7 @@ df.lec1.enrich.kegg <- as.data.frame(lec1.enrich.kegg)
 head(df.lec1.enrich.kegg)
 ```
 
-
-### Enriquecimiento de Motivos de DNA en los sitios de Unión
-
-Este apartado solo es aplicable si estudias un factor de transcripción. 
-
-Describir y discutir los motivos de DNA conocidos y no conocidos identificados 
-por Homer.
-
-Incluir tablas con los motivos de DNA conocidos y no conocidos identificados.
-
-
-### Comparación de la unión u ocupancia entre distintas condiciones.
-
-Este apartado solos era aplicable si se proporcionan datos de distintas condiciones.
-Se realizará una comparación entre la unión u ocupancia entre las distintas condiciones.
-Generando los gráficos y tablas oportunas. 
-
-Las tablas en Rmarkdown se escriben así:
-
-Término de GO | Descripción | Genes Representativos
------------- | -------------| -------------
-Table Cell   | Cell 2       | la
-Cell 3       | Cell 4       | la
+### Comparación de la unión u ocupancia entre distintas condiciones. (No hay varias condiciones)
 
 ## Conclusiones
 
