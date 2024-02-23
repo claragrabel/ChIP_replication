@@ -299,7 +299,6 @@ Para la validación de los resultados se plantea el siguiente experimento:
 
 Mediante generación de *knocked-outs* para LEC1, estudiar mediante RNA-seq la expresión génica de los principales genes que conforman el reguloma del factor de transcripción. Con este estudio, pretendemos ver por un lado una disminución de aquellos genes a los que se une el factor de transcripción en su promotor. Por otro lado, esperaríamos que el fenotipo de estos individuos presentaran un déficit de coloración en las semillas, que podría extenderse al resto de la planta durante su desarrollo.
 
-Propón algún experimento que creas oportuno realizar en el laboratorio para validar los resultados obtenidos. 
 
 Puntuación: 2
 
