@@ -266,7 +266,7 @@ lec1.enrich.go <- enrichGO(gene = target.genes,
 barplot(lec1.enrich.go,showCategory = 9)
 dotplot(lec1.enrich.go,showCategory = 9)
 ```
-De los resultados sobtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
+De los resultados obtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
 
 Los resultados se representan de igual forma en una gráfica de puntos, que indica en el eje X el ratio de genes diana que intervienen en cada una de las funciones identificadas. 
 
