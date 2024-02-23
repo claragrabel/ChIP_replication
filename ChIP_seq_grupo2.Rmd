@@ -291,9 +291,7 @@ Al analizar los resultados de ontología en una red biológica inferimos que los
 
 LEC1 es una subunidad de un factor de transcripción que tiende a unirse aguas arriba de los promotores de diferentes genes diana. Estos genes están mayoritariamente implicados en procesos de percepción de estímulos luminosos del medio, como luz visible e irradiación. Además, estos genes participan en la regulación metabólica de la síntesis de pigmentos, por lo que podemos concluir que existe una relación directa entre la percepción de la luz y la producción de fotopigmentos que favorezcan su captación.
 
-
-
-Relacionar los resultados obtenidos con los descritos en el artículo seleccionado.
+En el estudio de referencia se concluye que el factor de transcripción LEC1 está involucrado en funciones de respuesta a estímulos abióticos, a fotosíntesis y a diferentes procesos relacionados con el desarrollo de estructuras de la planta. Podemos concluir que este estudio confirma nuestras hipótesis sobre la función de los genes que conforman el reguloma de este factor de transcripción.
 
 Para la validación de los resultados se plantea el siguiente experimento:
 
@@ -309,9 +307,6 @@ En orden alfabético según el apellido del primer autor.
 
 autores (fecha) título del artículo, título de la revista en cursiva, volumen(número), páginas.
 
-Como se refiere en el texto artículos con un único autor (Apellido del autor, año)
-Como se refiere en el texto artículos con dos autores (Apellido primer autor & Apellido segundo autor, año)
-Como se refiere en el texto artículos con más de dos autores (Apellido primer autor et al, año)
-
+Hu, Y., Zhou, L., Huang, M., He, X., Yang, Y., Liu, X., Li, Y., & Hou, X. (2018). Gibberellins play an essential role in late embryogenesis of Arabidopsis. Nature Plants, 4(5), 289–298. https://doi.org/10.1038/s41477-018-0143-8
 Qianwen Wang, Ming Li, Tianzhi Wu, Li Zhan, Lin Li, Meijun Chen, Wenqin Xie, Zijing Xie, Erqiang Hu, Shuangbin Xu, Guangchuang Yu. Exploring epigenomic datasets by ChIPseeker. Current Protocols 2022, 2(10): e585 -> ChIPseeker
 Puntuación: 0.5
