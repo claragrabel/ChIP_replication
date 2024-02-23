@@ -30,7 +30,9 @@ Aunque de manera general se conoce en qué procesos biológicos está implicado 
 
 ### Diseño Experimental
 
-El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha expresado LEC1 con un “tag” bajo el control del promotor nativo. En la inmunoprecipitación, se usa un anticuerpo que reconoce este “tag”. Encontramos un total de cuatro muestras, existiendo dos réplicas para dos condiciones:
+Para este estudio, se expresa el factor de transcripción (FT) LEC1 con un tag bajo el control del promotor nativo. A continuación, se realiza una inmunoprecipitación con un anticuerpo específico para este tag. Se procesan un total de cuatro muestras, dos réplicas en las que se realiza la inmunoprecipitación y dos réplicas en las que se omite el tratamiento con el anticuerpo y que se emplean como input del estudio.
+
+El esquema de las muestras obtenidas se muestra a continuación:
 
 * LEC1_ChIP (inmunoprecipitación de la cromatina)
   + rep1
@@ -39,45 +41,22 @@ El número de acceso del estudio en GEO es GSE109977. En el laboratorio, se ha e
   + rep1
   + rep2
 
-Las muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500).
+Estas muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500), para obtener el conjunto de datos de nuestro estudio; cuatro ficheros en formato .fq.gz que se encuentran disponibles en GEO con el número de acceso GSE109977.
 
-## Flujo de trabajo
+### Flujo de trabajo
 
 ![Flujo de trabajo](ChIP_seq_workflow.jpg)
 
-(Omitiría la preparación del espacio de trabajo creo)
-En primer lugar, preparamos el espacio de trabajo:
+Partiendo de cuatro muestras, dos réplicas de inmunoprecipitación y dos réplicas del input, se ejecuta un script que realiza el control de calidad, el mapeo contra el genoma de referencia y la obtención de los archivos bam para cada una de las muestras de forma paralela. A continuación se indica el código empleado para ello:
 
-ChIPSeq/
-├── annotation/
-├── genome/
-├── samples/
-│   ├── replica_1/
-│   │   ├── chip/
-│   │   └── input/
-│   └── replica_2/
-│       ├── chip/
-│       └── input/
-├── results/
-└── scripts/
-
-Los ficheros genome.fa, annotation.gtf (que contienen el genoma de Arabidopsis thaliana en formato fasta y su correspondiente anotación, respectivamente) y las muestras fueron descargados manualmente y subidos a través de MobaXterm.
-(Scripts de procesamiento si que lo dejaría: análisis de calidad y mapeado)
-A continuación se muestran los scripts de bash usados para el procesamiento de datos de ChIP.
-
-La construcción del índice para el genoma se realizó mediante el siguiente código:
+La construcción del índice para el genoma:
 
 ```{bash}
 bowtie2-build genome.fa index
 ```
 
 
-Se utilizó el script sample_proc.sh para realizar el procesado de las muestras. Para ello, iteramos sobre los archivos fq.gz de cada carpeta de réplica. Este script incluye los pasos de:
-* Control de calidad con fastQC
-* Mapeo contra el índice del genoma de referencia con bowtie2
-* Paso de .sam a .bam con samtools y eliminación de los .sam
-
-_Script sample_proc_
+Script sample_proc.sh para realizar el procesado de las muestras:
 
 ```{bash}
 echo "Script for ChIPseq Sample Processing"
@@ -140,7 +119,10 @@ rm chip_$i.sam
 samtools index chip_$i.bam
 ```
 
-(A continuación, determinación de picos. No creo que haga falta la visualización en IGV, no?)
+Tras el procesamiento de las muestras se determinan los picos, que indican los lugares de unión del FT al genoma:
+
+FALTA VISUALIZACIÓN EN IGV
+
 La determinación de picos se llevó a cabo mediante el siguiente código:
 
 ```{bash}
@@ -151,10 +133,9 @@ macs2 callpeak \
 
 ```
 
+En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input). El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
 
-En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input) El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
 
-(Anotación, homer)
 Finalmente, se obtiene el guión para el enriquecimiento de motivos de DNA:
 
 ```{bash}
@@ -173,25 +154,16 @@ library(org.At.tair.db)
 library(ggupset)
 ```
 
-
-## Resultados (Siguen siendo materiales y métodos)
+## Resultados
 
 ### Análisis de la distribución global del Cistroma
 
+En primer lugar, se analiza la distribución de los picos en el genoma de referencia de nuestro organismo, *Arabidopsis thaliana*. Para ello, se definen los promotores, como aquellas regiones aguas arriba o abajo respecto al TSS a una distancia inferior a 1 kb. Generamos también la anotación de los peaks, que se representan en diferentes plots para su visualización.
 
-
----------------
-
-A continuación, en R vamos a analizar la distribución del cistroma, usando para ello la base de datos de nuestro organismo.
 
 ```{r}
 txdb <- TxDb.Athaliana.BioMart.plantsmart28
-```
 
-
-Leemos el fichero de picos y definimos qué consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS) Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
-
-```{r}
 lec1.peaks <- readPeakFile(peakfile = "lec1_peaks.narrowPeak", header=FALSE)
 promoter <- getPromoters(TxDb=txdb,
 upstream=1000,
@@ -208,7 +180,7 @@ plotAnnoPie(lec1.peakAnno)
 plotAnnoBar(lec1.peakAnno)
 ```
 
-En estos dos plot se observa que más del 75% de sitios de unión de este factor de transcripción son promotores (76.7%). Y el 15% es DNA intergénico. Son la misma representación, uno en pie chart y el otro en barras.
+En estos dos plot se observa que más del 75% de sitios de unión de este factor de transcripción son promotores (76.7%). Y el 15% es DNA intergénico.
 
 
 
@@ -287,15 +259,15 @@ lec1.enrich.go <- enrichGO(gene = target.genes,
 barplot(lec1.enrich.go,showCategory = 9)
 dotplot(lec1.enrich.go,showCategory = 9)
 ```
+De los resultado sobtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unnión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
 
-
-Se puede apreciar que el resultado del ensayo de ChIP-Seq está enriquecido en términos de ontología génica relacionados con la respuesta de la planta a estímulos abióticos como la irradiación e intensidad de luz. Los términos de ontología génicos que acumulan un mayor número de genes diana son los de respuesta a la intensidad luminosa y la luz roja.
+Los resultados se representan de igual forma en una gráfica de puntos, que indica en el eje X el ratio de genes diana que intervienen en cada una de las funciones identificadas. 
 
 ```{r}
 cnetplot(lec1.enrich.go,showCategory = 9)
 ```
 
-También es posible representar las relaciones de los términos de ontología entre sí en una red biológica.
+Relaciones de los términos de ontología entre sí en una red biológica:
 
 ```{r}
 lec1.enrich.kegg <- enrichKEGG(gene  = target.genes,
@@ -305,6 +277,7 @@ lec1.enrich.kegg <- enrichKEGG(gene  = target.genes,
 df.lec1.enrich.kegg <- as.data.frame(lec1.enrich.kegg)
 head(df.lec1.enrich.kegg)
 ```
+Al analizar los resultados de ontología en una red biológica inferimos que los genes diana están altamente relacionados con las rutas metabólicas implicadas en la obtención de energía y metabolismo del carbono, todas ellas en el organismo *Arabidopsis thaliana*.  
 
 ### Comparación de la unión u ocupancia entre distintas condiciones. (No hay varias condiciones)
 
@@ -329,4 +302,5 @@ Como se refiere en el texto artículos con un único autor (Apellido del autor, 
 Como se refiere en el texto artículos con dos autores (Apellido primer autor & Apellido segundo autor, año)
 Como se refiere en el texto artículos con más de dos autores (Apellido primer autor et al, año)
 
+Qianwen Wang, Ming Li, Tianzhi Wu, Li Zhan, Lin Li, Meijun Chen, Wenqin Xie, Zijing Xie, Erqiang Hu, Shuangbin Xu, Guangchuang Yu. Exploring epigenomic datasets by ChIPseeker. Current Protocols 2022, 2(10): e585 -> ChIPseeker
 Puntuación: 0.5
