@@ -1,7 +1,7 @@
 ---
 title: "Análisis de datos de ChIP-Seq para identificar sitios de unión de
 LEC1 en semillas en desarrollo"
-author: "clagrabel"
+author: "Clara Granado Beltrán, Andrea García Alcaide, Lucía González López, Álvaro Guzmán Rincón y Wasim El Arfaoui"
 date: "2024-02-10"
 output: pdf_document
 ---
