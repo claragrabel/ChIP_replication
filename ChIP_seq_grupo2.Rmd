@@ -169,7 +169,7 @@ txdb <- TxDb.Athaliana.BioMart.plantsmart28
 ```
 
 
-Leemos el fichero de picos y definimos qué consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS) Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
+Leemos el fichero de picos y definimos qué consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS). Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
 
 ```{r}
 lec1.peaks <- readPeakFile(peakfile = "lec1_peaks.narrowPeak", header=FALSE)
@@ -267,15 +267,15 @@ lec1.enrich.go <- enrichGO(gene = target.genes,
 barplot(lec1.enrich.go,showCategory = 9)
 dotplot(lec1.enrich.go,showCategory = 9)
 ```
+De los resultado sobtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unnión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
 
-
-Se puede apreciar que el resultado del ensayo de ChIP-Seq está enriquecido en términos de ontología génica relacionados con la respuesta de la planta a estímulos abióticos como la irradiación e intensidad de luz. Los términos de ontología génicos que acumulan un mayor número de genes diana son los de respuesta a la intensidad luminosa y la luz roja.
+Los resultados se representan de igual forma en una gráfica de puntos, que indica en el eje X el ratio de genes diana que intervienen en cada una de las funciones identificadas. 
 
 ```{r}
 cnetplot(lec1.enrich.go,showCategory = 9)
 ```
 
-También es posible representar las relaciones de los términos de ontología entre sí en una red biológica.
+Relaciones de los términos de ontología entre sí en una red biológica:
 
 ```{r}
 lec1.enrich.kegg <- enrichKEGG(gene  = target.genes,
@@ -285,6 +285,7 @@ lec1.enrich.kegg <- enrichKEGG(gene  = target.genes,
 df.lec1.enrich.kegg <- as.data.frame(lec1.enrich.kegg)
 head(df.lec1.enrich.kegg)
 ```
+Al analizar los resultados de ontología en una red biológica inferimos que los genes diana están altamente relacionados con las rutas metabólicas implicadas en la obtención de energía y metabolismo del carbono, todas ellas en el organismo *Arabidopsis thaliana*.  
 
 ### Comparación de la unión u ocupancia entre distintas condiciones. (No hay varias condiciones)
 
@@ -309,4 +310,5 @@ Como se refiere en el texto artículos con un único autor (Apellido del autor, 
 Como se refiere en el texto artículos con dos autores (Apellido primer autor & Apellido segundo autor, año)
 Como se refiere en el texto artículos con más de dos autores (Apellido primer autor et al, año)
 
+Qianwen Wang, Ming Li, Tianzhi Wu, Li Zhan, Lin Li, Meijun Chen, Wenqin Xie, Zijing Xie, Erqiang Hu, Shuangbin Xu, Guangchuang Yu. Exploring epigenomic datasets by ChIPseeker. Current Protocols 2022, 2(10): e585 -> ChIPseeker
 Puntuación: 0.5
