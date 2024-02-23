@@ -45,7 +45,7 @@ Estas muestras han sido procesadas mediante secuenciación de altas prestaciones
 
 ### Flujo de trabajo
 
-![Flujo de trabajo](ChIP_seq_workflow.jpg)
+![Flujo de trabajo. Secuencia de pasos seguidos para el procesamiento de los datos de inmunoprecipitación](ChIP_seq_workflow.jpg)
 
 Partiendo de cuatro muestras, dos réplicas de inmunoprecipitación y dos réplicas del input, se ejecuta un script que realiza el control de calidad, el mapeo contra el genoma de referencia y la obtención de los archivos bam para cada una de las muestras de forma paralela. A continuación se indica el código empleado para ello:
 
@@ -54,7 +54,6 @@ La construcción del índice para el genoma:
 ```{bash}
 bowtie2-build genome.fa index
 ```
-
 
 Script sample_proc.sh para realizar el procesado de las muestras:
 
@@ -121,8 +120,6 @@ samtools index chip_$i.bam
 
 Tras el procesamiento de las muestras se determinan los picos, que indican los lugares de unión del FT al genoma:
 
-FALTA VISUALIZACIÓN EN IGV
-
 La determinación de picos se llevó a cabo mediante el siguiente código:
 
 ```{bash}
@@ -158,6 +155,13 @@ library(ggupset)
 
 ### Análisis de la distribución global del Cistroma
 
+En primer lugar, se realiza un primer visionado general de los picos en el genoma. Al visualizar los ficheros en IGV podemos ver que los lugares donde se sitúan más picos son aquellos lugares donde se une el factor de trasncripción LEC1. En la siguiente imagen podemos apreciar distintos picos que se encuentran aguas arriba respecto del TSS (Transcription Start Site).
+La mayoría de estos picos se sitúan a menos de 1kb de distancia, aunque podemos distinguir un lugar de unión del pico 1042 a mayor distancia. Estos genes serán aquellos que consideremos como genes diana de LEC1 (Nearest Downstream Gene).
+
+![Visualización de la determinación de picos de unión del factor de transcripción LEC1 al genoma de Arabidopsis thaliana.] (Visualizacion_IGV.jpeg)
+
+
+
 En primer lugar, se analiza la distribución de los picos en el genoma de referencia de nuestro organismo, *Arabidopsis thaliana*. Para ello, se definen los promotores, como aquellas regiones aguas arriba o abajo respecto al TSS a una distancia inferior a 1 kb. Generamos también la anotación de los peaks, que se representan en diferentes plots para su visualización.
 
 
@@ -171,11 +175,7 @@ downstream=1000)
 
 lec1.peakAnno <- annotatePeak(peak = lec1.peaks, tssRegion=c(-1000, 1000),
 TxDb=txdb)
-```
 
-
-
-```{r}
 plotAnnoPie(lec1.peakAnno)
 plotAnnoBar(lec1.peakAnno)
 ```
@@ -239,9 +239,17 @@ Enlazamos a un archivo de reguloma:
 
 ### Enriquecimiento de Motivos de DNA en los sitios de Unión
 
-Imágenes de enriquecimiento de HOMER
+Entre los motivos conocidos, se encuentra el motivo CACGTGGC en el 31% de los picos. En el background aparece un 7'32%, por lo que el enriquecimiento sería de 31/7'32= 4'3.
+Esta secuencia se relaciona con ABF1 de Arabidopsis thaliana (Abscisic Acid Responsibe element-binding
+factor 1), relacionado con genes de respuesta a ácido abscísico.
+El siguiente motivo más enriquecido (27,51%, respecto a 5'97% en el background) se relaciona con el elemento
+E-box, que es una secuencia que se localiza normalmente en la región promotora de un gen.
+La mayoría de los motivos pertenecen a la familia de los bZIPs o leucine zippers.
 
-![Enriquecimiento HOMER]()
+![Enriquecimiento HOMER](HOMER_known_motifs.jpeg)
+
+Con respecto a los motivos desconocidos, la secuencia más enriquecida con respecto al background es GACACGTG, que tiene parecido con el motivo 3 de los conocidos, relacionado con la familia de los bZIPs.
+![Enriquecimiento HOMER](HOMWE_unknown_motifs.jpeg)
 
 ```{r}
 lec1.enrich.go <- enrichGO(gene = target.genes,
@@ -254,12 +262,11 @@ lec1.enrich.go <- enrichGO(gene = target.genes,
 
 ```
 
-
 ```{r}
 barplot(lec1.enrich.go,showCategory = 9)
 dotplot(lec1.enrich.go,showCategory = 9)
 ```
-De los resultado sobtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unnión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
+De los resultados sobtenidos en la gráfica de barras, podemos observar que los genes diana para la unión del factor de transcripción son genes implicados en la respuesta a factores abióticos externos, tales como la intensidad de luz, la luz roja de amplio espectro o la radiación. Con un p-valor menor, el factor de transcripción también presenta sitios de unión en genes que invervienen en el procesos del metabolismo de pigmentos, estando estos altamente relacionados con la captación de estímulos lumínicos.
 
 Los resultados se representan de igual forma en una gráfica de puntos, que indica en el eje X el ratio de genes diana que intervienen en cada una de las funciones identificadas. 
 
@@ -279,13 +286,18 @@ head(df.lec1.enrich.kegg)
 ```
 Al analizar los resultados de ontología en una red biológica inferimos que los genes diana están altamente relacionados con las rutas metabólicas implicadas en la obtención de energía y metabolismo del carbono, todas ellas en el organismo *Arabidopsis thaliana*.  
 
-### Comparación de la unión u ocupancia entre distintas condiciones. (No hay varias condiciones)
 
 ## Conclusiones
 
-Relacionar todos los resultados anteriores para formular conclusiones del análisis realizado.
+LEC1 es una subunidad de un factor de transcripción que tiende a unirse aguas arriba de los promotores de diferentes genes diana. Estos genes están mayoritariamente implicados en procesos de percepción de estímulos luminosos del medio, como luz visible e irradiación. Además, estos genes participan en la regulación metabólica de la síntesis de pigmentos, por lo que podemos concluir que existe una relación directa entre la percepción de la luz y la producción de fotopigmentos que favorezcan su captación.
+
+
 
 Relacionar los resultados obtenidos con los descritos en el artículo seleccionado.
+
+Para la validación de los resultados se plantea el siguiente experimento:
+
+Mediante generación de *knocked-outs* para LEC1, estudiar mediante RNA-seq la expresión génica de los principales genes que conforman el reguloma del factor de transcripción. Con este estudio, pretendemos ver por un lado una disminución de aquellos genes a los que se une el factor de transcripción en su promotor. Por otro lado, esperaríamos que el fenotipo de estos individuos presentaran un déficit de coloración en las semillas, que podría extenderse al resto de la planta durante su desarrollo.
 
 Propón algún experimento que creas oportuno realizar en el laboratorio para validar los resultados obtenidos. 
 
