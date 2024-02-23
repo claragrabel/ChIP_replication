@@ -43,7 +43,7 @@ El esquema de las muestras obtenidas se muestra a continuación:
 
 Estas muestras han sido procesadas mediante secuenciación de altas prestaciones (Illumina HiSeq 2500), para obtener el conjunto de datos de nuestro estudio; cuatro ficheros en formato .fq.gz que se encuentran disponibles en GEO con el número de acceso GSE109977.
 
-## Flujo de trabajo
+### Flujo de trabajo
 
 ![Flujo de trabajo](ChIP_seq_workflow.jpg)
 
@@ -120,7 +120,9 @@ samtools index chip_$i.bam
 ```
 
 Tras el procesamiento de las muestras se determinan los picos, que indican los lugares de unión del FT al genoma:
-(A continuación, determinación de picos. No creo que haga falta la visualización en IGV, no?)
+
+FALTA VISUALIZACIÓN EN IGV
+
 La determinación de picos se llevó a cabo mediante el siguiente código:
 
 ```{bash}
@@ -131,10 +133,9 @@ macs2 callpeak \
 
 ```
 
+En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input). El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
 
-En esta instrucción, se usa -t para indicar los ficheros .bam con los datos de la inmunoprecipitación, y -c para los archivos que usaremos como control (input) El control permite estimar el ruido de fondo, de forma que la determinación de picos se realizará comparando las lecturas de las muestras de ChIP con las lecturas obtenidas en el input. Al usar dos ficheros de ChIP y dos como input, esta herramienta unifica los datos de ambas réplicas para posteriormente compararlos. Especificamos también el formato, el directorio donde se almacenarán los resultados y el nombre de los archivos generados. Se usan los parámetros por defecto (0.05 como umbral para el q-valor y valores de fold-enrichment entre 5 y 50).
 
-(Anotación, homer)
 Finalmente, se obtiene el guión para el enriquecimiento de motivos de DNA:
 
 ```{bash}
@@ -153,25 +154,16 @@ library(org.At.tair.db)
 library(ggupset)
 ```
 
-
-## Resultados (Siguen siendo materiales y métodos)
+## Resultados
 
 ### Análisis de la distribución global del Cistroma
 
+En primer lugar, se analiza la distribución de los picos en el genoma de referencia de nuestro organismo, *Arabidopsis thaliana*. Para ello, se definen los promotores, como aquellas regiones aguas arriba o abajo respecto al TSS a una distancia inferior a 1 kb. Generamos también la anotación de los peaks, que se representan en diferentes plots para su visualización.
 
-
----------------
-
-A continuación, en R vamos a analizar la distribución del cistroma, usando para ello la base de datos de nuestro organismo.
 
 ```{r}
 txdb <- TxDb.Athaliana.BioMart.plantsmart28
-```
 
-
-Leemos el fichero de picos y definimos qué consideramos como promotores (región a menos de 1 kb aguas arriba o aguas abajo con respecto al TSS). Generamos también la anotación de los peaks, que visualizaremos en distintos plots.
-
-```{r}
 lec1.peaks <- readPeakFile(peakfile = "lec1_peaks.narrowPeak", header=FALSE)
 promoter <- getPromoters(TxDb=txdb,
 upstream=1000,
@@ -188,7 +180,7 @@ plotAnnoPie(lec1.peakAnno)
 plotAnnoBar(lec1.peakAnno)
 ```
 
-En estos dos plot se observa que más del 75% de sitios de unión de este factor de transcripción son promotores (76.7%). Y el 15% es DNA intergénico. Son la misma representación, uno en pie chart y el otro en barras.
+En estos dos plot se observa que más del 75% de sitios de unión de este factor de transcripción son promotores (76.7%). Y el 15% es DNA intergénico.
 
 
 
